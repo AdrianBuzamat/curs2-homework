@@ -3,10 +3,10 @@ package ro.fasttrackit.fs02.curs2_homework.ex2.inheritance;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 public abstract class PersonReportGenerator {
     abstract List<Person> readPersons();
@@ -19,24 +19,12 @@ public abstract class PersonReportGenerator {
 
     private void generateReport(List<Person> personList, String outputFile) throws IOException {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile))) {
-            personList.stream()
-                    .collect(Collectors.groupingBy(person2Group, Collectors.mapping(Person::firstName, Collectors.toList())))
-                    .entrySet().stream()
+            person2Group(personList).entrySet().stream()
                     .map(e -> e.getKey() + ": " + e.getValue())
                     .sorted()
                     .forEach(line -> writeLine(writer, line));
         }
     }
-
-    Function<Person, String> person2Group = person -> {
-        if (person.age() >= 1 && person.age() < 30) {
-            return "1-30";
-        } else if (person.age() >= 30 && person.age() < 50) {
-            return "30-50";
-        } else {
-            return "50+";
-        }
-    };
 
     private void writeLine(BufferedWriter writer, String line) {
         try {
@@ -45,6 +33,25 @@ public abstract class PersonReportGenerator {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private Map<String, List<String>> person2Group(List<Person> persons) {
+        Map<String, List<String>> result = new HashMap<>();
+
+        result.put("1-10", new ArrayList<>());
+        result.put("30-50", new ArrayList<>());
+        result.put("50+", new ArrayList<>());
+
+        for (Person person : persons) {
+            if (person.age() >= 1 && person.age() < 30) {
+                result.get("1-10").add(String.join(" ", person.firstName(), person.lastName()));
+            } else if (person.age() >= 30 && person.age() < 50) {
+                result.get("30-50").add(String.join(" ", person.firstName(), person.lastName()));
+            } else {
+                result.get("50+").add(String.join(" ", person.firstName(), person.lastName()));
+            }
+        }
+        return result;
     }
 
 }
